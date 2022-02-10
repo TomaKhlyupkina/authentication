@@ -1,0 +1,17 @@
+body {
+    background-color: rgb(247, 247, 247);
+}
+
+#loginForm {
+    margin-top: 50px;
+    padding: 50px;
+}
+
+.nav-link-color {
+    font-weight: bold;
+    color: black;
+}
+
+.nav-link-color:hover {
+    color: rgb(92, 92, 92);
+}
