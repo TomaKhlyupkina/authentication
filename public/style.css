@@ -15,3 +15,20 @@ body {
 .nav-link-color:hover {
     color: rgb(92, 92, 92);
 }
+
+.btn-registration {
+    margin-top: 20px;
+}
+
+.form-label {
+    margin-top: 20px;
+}
+
+.container {
+    margin-top: 50px;
+}
+
+.form-check-input:checked {
+    background-color: rgb(115, 133, 128);
+    border: rgb(115, 133, 128);
+}
