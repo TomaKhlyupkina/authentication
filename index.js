@@ -1,9 +1,10 @@
 const express = require("express");
 const fs = require("fs")
 const path = require("path");
-const session = require('express-session');
-const passport = require('passport');
-const localStrategy = require('passport-local').Strategy
+const session = require("express-session");
+const passport = require("passport");
+const localStrategy = require("passport-local").Strategy
+const bcrypt = require("bcrypt")
 
 const app = express();
 
@@ -19,35 +20,39 @@ passport.use(
     new localStrategy(
         {
             usernameField: "email",
-            passwordField: "password"
+            passwordField: "password",
         },
         (user, password, done) => {
-            const foundUser = users.find(currentUser => {
-                return currentUser.email === user
+            const foundUser = findUserByEmail(user)
+            if (!foundUser || foundUser.status === "Block") {
+                return done(null, false)
+            }
+            bcrypt.compare(password, foundUser.password, (err, res) => {
+                if (res) {
+                    foundUser.lastLoginDate = getDateNow()
+                    return done(null, {id: foundUser.id})
+                }
+                return done(null, false)
             })
-            if (!foundUser) {
-                return done(null, false, {
-                    message: "User not found",
-                })
-            }
-            if(password !== foundUser.password) {
-                return done(null, false, {
-                    message: "Wrong password",
-                })
-            }
-            return done(null, {id: foundUser.id})
+
         }
     )
 )
 
 let users = []
+
 const pathToDB = "./users.json"
 readUsersFromDB(users)
 
 function checkAuth(req, res) {
-    if (req.user)
-        return true
-    return false
+    if (!req.user) {
+        return false
+    }
+    let foundUser = findUserById(req.user.id)
+    if (!foundUser) {
+        return false
+    }
+    return foundUser.status === "Active";
 }
 
 function writeUsersToDB() {
@@ -67,14 +72,13 @@ function readUsersFromDB() {
 
 class Users {
     constructor(name, email, password) {
-        this.id = users.length
+        this.id = getUserId()
         this.name = name
         this.email = email
         this.password = password
         this.registrationDate = getDateNow()
-
-        this.lastLoginDate = "TODO"
-        this.status = "TODO"
+        this.lastLoginDate = ""
+        this.status = "Active"
     }
 }
 
@@ -83,6 +87,37 @@ function getDateNow() {
     return (dateNow.getMonth() + 1).toString() + "/" +
         dateNow.getDate().toString() + "/" +
         dateNow.getFullYear().toString()
+}
+
+function getUserId() {
+    if (!users.length) {
+        return 0
+    }
+    let usersId = []
+    users.forEach(user => {
+        usersId.push(user.id)
+    })
+    return (Math.max(...usersId) + 1)
+}
+
+function findUserById(id) {
+    return users.find(currentUser => {
+        return currentUser.id === id
+    })
+}
+
+function findUserByEmail(email) {
+    return users.find(currentUser => {
+        return currentUser.email === email
+    })
+}
+
+function changeUsersStatus(usersId, status) {
+    users.forEach(user => {
+        if (usersId.includes(user.id.toString())) {
+            user.status = status
+        }
+    })
 }
 
 app.listen(8080, () => {
@@ -100,21 +135,23 @@ app.get("/info", (req, res) => {
         res.sendFile(`${__dirname}/public/info.html`)
     else
         res.redirect("/")
-    console.log(req.user)
 })
 
 app.post("/register", (req, res) => {
-    if (!req.body) {
-        return res.sendStatus(400)
+    const foundUser = findUserByEmail(req.body.email)
+    if (foundUser) {
+        return res.status(400).send("Email is used")
     }
-    let user = new Users(req.body.name, req.body.email, req.body.password)
-    console.log(users)
-    users.push(user)
-    writeUsersToDB()
+    bcrypt.hash(req.body.password, 10, (err, hash) => {
+        let user = new Users(req.body.name, req.body.email, hash)
+        users.push(user)
+        writeUsersToDB()
+    });
+
     res.redirect("/")
 })
 
-app.post("/login",  passport.authenticate('local', {
+app.post("/login", passport.authenticate('local', {
     successRedirect: "/info",
     failureRedirect: "/"
 }))
@@ -124,8 +161,33 @@ app.post("/logout", (req, res) => {
     res.redirect("/");
 })
 
-// TODO: don't send password
 app.get("/getData", (req, res) => {
-    res.json(users)
+    let usersData = users.map(a => {return {...a}})
+    usersData.forEach(userData => {
+        delete userData.password
+    })
+    res.json(usersData)
 })
 
+app.post("/block", (req, res) => {
+    let checkedUsersId = JSON.parse(req.body.data)
+    changeUsersStatus(checkedUsersId, "Block")
+    writeUsersToDB()
+    res.sendStatus(200)
+})
+
+app.post("/unblock", (req, res) => {
+    let checkedUsersId = JSON.parse(req.body.data)
+    changeUsersStatus(checkedUsersId, "Active")
+    writeUsersToDB()
+    res.sendStatus(200)
+})
+
+app.post("/delete", (req, res) => {
+    let checkedUsersId = JSON.parse(req.body.data)
+    users = users.filter((user) => {
+        return !checkedUsersId.includes(user.id.toString())
+    })
+    writeUsersToDB()
+    res.sendStatus(200)
+})

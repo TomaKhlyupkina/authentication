@@ -18,9 +18,11 @@
   },
   "homepage": "https://github.com/TomaKhlyupkina/authentication#readme",
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "body-parser": "^1.19.1",
     "connect-flash": "^0.1.1",
     "express": "^4.17.2",
+    "express-validator": "^6.14.0",
     "passport": "^0.5.2",
     "passport-local": "^1.0.0"
   },

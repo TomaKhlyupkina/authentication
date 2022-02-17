@@ -24,11 +24,31 @@ body {
     margin-top: 20px;
 }
 
+.form-control {
+    border-color: rgb(224, 224, 224);
+}
+
+.form-control:focus {
+    box-shadow:  0 0 2px 3px rgb(240, 240, 240);
+    border-color: rgb(224, 224, 224);
+
+}
+
 .container {
     margin-top: 50px;
 }
 
+.form-check-input {
+    border-color: rgb(148, 148, 148);
+}
+
+.form-check-input:focus {
+    box-shadow: none;
+    border-color: rgb(148, 148, 148);
+}
+
 .form-check-input:checked {
     background-color: rgb(115, 133, 128);
-    border: rgb(115, 133, 128);
+    border-color: rgb(115, 133, 128);
+    box-shadow:  0 0 2px 2px rgb(199, 199, 199);
 }
