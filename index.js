@@ -8,6 +8,8 @@ const bcrypt = require("bcrypt")
 
 const app = express();
 
+const PORT = process.env.PORT || 8080
+
 passport.serializeUser((user, done) => done(null, user))
 passport.deserializeUser((user, done) => done(null, user))
 
@@ -121,8 +123,8 @@ function changeUsersStatus(usersId, status) {
     })
 }
 
-app.listen(8080, () => {
-    console.log("Application listening on port 8080!");
+app.listen(PORT, () => {
+    console.log(`Application listening on port ${PORT}!`);
 });
 
 app.get("/", (req, res) => {
