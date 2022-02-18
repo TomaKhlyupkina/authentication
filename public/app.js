@@ -1,3 +1,13 @@
+let xhr = new XMLHttpRequest();
+xhr.open("GET", "/getData");
+xhr.responseType = "json";
+
+xhr.onload = function() {
+    addUsersToTable(xhr.response);
+};
+
+xhr.send();
+
 function addUsersToTable(users) {
     let tableBody = document.getElementById("tableBody")
     const columnsValues = ["id", "name", "email", "registrationDate", "lastLoginDate", "status"]
@@ -14,7 +24,7 @@ function addUsersToTable(users) {
 
 function addTextNodeToRow(row, textValue) {
     let cell = document.createElement("td")
-    let cellText = document.createTextNode(textValue)
+    const cellText = document.createTextNode(textValue)
     cell.appendChild(cellText)
     row.appendChild(cell)
 }
@@ -28,22 +38,12 @@ function addCheckBoxToRow(row) {
     row.appendChild(checkBox)
 }
 
-let request = new XMLHttpRequest();
-request.open("GET", "/getData");
-request.responseType = "json";
-
-request.onload = function() {
-    addUsersToTable(request.response);
-};
-
-request.send();
-
 function getCheckedUsersId(url) {
-    let checkBoxes = document.getElementsByClassName("custom-checkbox")
+    const checkBoxes = document.getElementsByClassName("custom-checkbox")
     let checkedUsersId = [];
-    for (let i = 0; i < checkBoxes.length; i++) {
-        if (checkBoxes[i].checked) {
-            checkedUsersId.push(checkBoxes[i].parentElement.nextElementSibling.textContent)
+    for (const checkBox of checkBoxes) {
+        if (checkBox.checked) {
+            checkedUsersId.push(checkBox.parentElement.nextElementSibling.textContent)
         }
     }
 
@@ -54,7 +54,7 @@ function getCheckedUsersId(url) {
 }
 
 document.getElementById("checkAll").onclick = function() {
-    let checkBoxes = document.getElementsByClassName("custom-checkbox")
+    const checkBoxes = document.getElementsByClassName("custom-checkbox")
     for (let checkBox of checkBoxes) {
         checkBox.checked = this.checked;
     }

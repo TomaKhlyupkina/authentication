@@ -15,6 +15,7 @@ app.use(session({ secret: "secret key", resave: false, saveUninitialized: true }
 app.use(passport.initialize())
 app.use(passport.session())
 app.use(express.urlencoded({ extended: true }))
+app.use(express.static(path.join(__dirname, "public")));
 
 passport.use(
     new localStrategy(
@@ -44,7 +45,7 @@ let users = []
 const pathToDB = "./users.json"
 readUsersFromDB(users)
 
-function checkAuth(req, res) {
+function checkAuth(req) {
     if (!req.user) {
         return false
     }
@@ -124,14 +125,12 @@ app.listen(8080, () => {
     console.log("Application listening on port 8080!");
 });
 
-app.use(express.static(path.join(__dirname, "public")));
-
 app.get("/", (req, res) => {
     res.sendFile(`${__dirname}/public/index.html`);
 });
 
 app.get("/info", (req, res) => {
-    if(checkAuth(req, res))
+    if(checkAuth(req))
         res.sendFile(`${__dirname}/public/info.html`)
     else
         res.redirect("/")
@@ -143,7 +142,7 @@ app.post("/register", (req, res) => {
         return res.status(400).send("Email is used")
     }
     bcrypt.hash(req.body.password, 10, (err, hash) => {
-        let user = new Users(req.body.name, req.body.email, hash)
+        const user = new Users(req.body.name, req.body.email, hash)
         users.push(user)
         writeUsersToDB()
     });
@@ -170,21 +169,21 @@ app.get("/getData", (req, res) => {
 })
 
 app.post("/block", (req, res) => {
-    let checkedUsersId = JSON.parse(req.body.data)
+    const checkedUsersId = JSON.parse(req.body.data)
     changeUsersStatus(checkedUsersId, "Block")
     writeUsersToDB()
     res.sendStatus(200)
 })
 
 app.post("/unblock", (req, res) => {
-    let checkedUsersId = JSON.parse(req.body.data)
+    const checkedUsersId = JSON.parse(req.body.data)
     changeUsersStatus(checkedUsersId, "Active")
     writeUsersToDB()
     res.sendStatus(200)
 })
 
 app.post("/delete", (req, res) => {
-    let checkedUsersId = JSON.parse(req.body.data)
+    const checkedUsersId = JSON.parse(req.body.data)
     users = users.filter((user) => {
         return !checkedUsersId.includes(user.id.toString())
     })
